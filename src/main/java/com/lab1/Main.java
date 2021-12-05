@@ -46,8 +46,8 @@ public class Main extends SimpleApplication implements AnalogListener {
         stateManager.attach(bulletAppState);
         bulletAppState.setDebugEnabled(true);
         setupKeys();
-        float gravity = 150f;
-        Vector3f gravityVector = new Vector3f(0f, -gravity, 0f);
+        //float gravity = 150f;
+        Vector3f gravityVector = new Vector3f(0f, -150f, 0f);
         bulletAppState.getPhysicsSpace().setGravity(gravityVector);
         startSimulation();
     }
@@ -62,10 +62,10 @@ public class Main extends SimpleApplication implements AnalogListener {
     @Override
     public void onAnalog(String binding, float value, float tpf) {
         if(binding.equals("Left")){
-            arrayJoint[0].enableMotor(true, 1.1f, 2f);
+            arrayJoint[0].enableMotor(true, 0.3f, 0.5f);
         }
         else if(binding.equals("Right")){
-            arrayJoint[0].enableMotor(true, 1.2f, 2f);
+            arrayJoint[0].enableMotor(true, 0.3f, 0.5f);
         }
         else if(binding.equals("Swing")){
             arrayJoint[0].enableMotor(false, 0, 0);
@@ -76,23 +76,37 @@ public class Main extends SimpleApplication implements AnalogListener {
         initBalls(6);
     }
 
+
+
     public void initBalls(int count) {
         Material material = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         material.setColor("Color", ColorRGBA.Blue);
-
+        SphereCollisionShape[] sphereCollisionShapes = new SphereCollisionShape[count];
+        PhysicsRigidBody[] physicsRigidBodies = new PhysicsRigidBody[count];
         Geometry[] arraySphereGeometry = new Geometry[count];
         arrayJoint = new HingeJoint[2 * count];
         Node[] arrayNode = new Node[2 * count];
 
+        bulletAppState.getPhysicsSpace().setAccuracy(0.01f);
+
 
         for(int i = 0; i < count; i++) {
-            Sphere sphere = new Sphere(64, 64, 1f);
-            arraySphereGeometry[i] = new Geometry("Sphere", sphere);
-            arraySphereGeometry[i].setMaterial(material);
-            arraySphereGeometry[i].setLocalTranslation(2*i, -4, 0);
-            arraySphereGeometry[i].addControl(new RigidBodyControl(1f));
-            rootNode.attachChild(arraySphereGeometry[i]);
-            bulletAppState.getPhysicsSpace().add(arraySphereGeometry[i]);
+            sphereCollisionShapes[i] = new SphereCollisionShape(0.99f);
+            physicsRigidBodies[i] = new PhysicsRigidBody(sphereCollisionShapes[i]);
+            Vector3f location = new Vector3f(2*i, -4, 0);
+            physicsRigidBodies[i].setPhysicsLocation(location);
+            //physicsRigidBodies[i].setMass(50.0f);
+            physicsRigidBodies[i].setRestitution(1f);
+            physicsRigidBodies[i].setFriction(0f);
+            physicsRigidBodies[i].setGravity(new Vector3f(0f, -300f, 0f));
+            bulletAppState.getPhysicsSpace().add(physicsRigidBodies[i]);
+//            Sphere sphere = new Sphere(64, 64, 1f);
+//            arraySphereGeometry[i] = new Geometry("Sphere", sphere);
+//            arraySphereGeometry[i].setMaterial(material);
+//           arraySphereGeometry[i].setLocalTranslation(2*i, -4, 0);
+//            arraySphereGeometry[i].addControl(new RigidBodyControl(1f));
+//            rootNode.attachChild(arraySphereGeometry[i]);
+//            bulletAppState.getPhysicsSpace().add(arraySphereGeometry[i]);
         }
 
         for(int i = 0; i < count; i++) {
@@ -109,12 +123,16 @@ public class Main extends SimpleApplication implements AnalogListener {
         }
 
         for(int i = 0; i < count; i++) {
-                arrayJoint[2 * i] = new HingeJoint(arrayNode[2 * i].getControl(RigidBodyControl.class), arraySphereGeometry[i].getControl(RigidBodyControl.class), new Vector3f(0f, 0f, 0f), new Vector3f(0f, 4, -1f), Vector3f.UNIT_Z, Vector3f.UNIT_Z);
+                arrayJoint[2 * i] = new HingeJoint(arrayNode[2 * i].getControl(RigidBodyControl.class), physicsRigidBodies[i], new Vector3f(0f, 0f, 0f), new Vector3f(0f, 4, -1f), Vector3f.UNIT_Z, Vector3f.UNIT_Z);
                 bulletAppState.getPhysicsSpace().add(arrayJoint[2 * i]);
 
-                arrayJoint[2 * i + 1] = new HingeJoint(arrayNode[2 * i + 1].getControl(RigidBodyControl.class), arraySphereGeometry[i].getControl(RigidBodyControl.class), new Vector3f(0f, 0f, 0f), new Vector3f(0f, 4, 1f), Vector3f.UNIT_Z, Vector3f.UNIT_Z);
+                arrayJoint[2 * i + 1] = new HingeJoint(arrayNode[2 * i + 1].getControl(RigidBodyControl.class), physicsRigidBodies[i], new Vector3f(0f, 0f, 0f), new Vector3f(0f, 4, 1f), Vector3f.UNIT_Z, Vector3f.UNIT_Z);
                 bulletAppState.getPhysicsSpace().add(arrayJoint[2 * i + 1]);
         }
+
+        physicsRigidBodies[0].applyCentralForce(new Vector3f(-60f, 0f, 0f));
+
+        //arraySphereGeometry[0]
     }
 
     public static Node createPhysicsNode(AssetManager manager, CollisionShape shape, float mass) {
