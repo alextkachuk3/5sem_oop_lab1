@@ -8,7 +8,6 @@ import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.joints.HingeJoint;
-import com.jme3.bullet.joints.Point2PointJoint;
 import com.jme3.bullet.objects.PhysicsRigidBody;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.AnalogListener;
@@ -16,18 +15,12 @@ import com.jme3.input.controls.InputListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
-import com.jme3.renderer.RenderManager;
-import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
-import com.jme3.scene.shape.Box;
-import com.jme3.scene.shape.Sphere;
 
 /**
- * This is the Main Class of your Game. You should only do initialization here.
- * Move your Logic into AppStates or Controls
- * @author normenhansen
+ * This is the Main Class of your simulation
+ * @author Alex
  */
 public class Main extends SimpleApplication implements AnalogListener {
 
@@ -40,50 +33,69 @@ public class Main extends SimpleApplication implements AnalogListener {
         app.start();
     }
 
+    /**
+     *
+     */
     @Override
     public void simpleInitApp() {
         bulletAppState = new BulletAppState();
-        stateManager.attach(bulletAppState);
-        bulletAppState.setDebugEnabled(true);
         setupKeys();
-        //float gravity = 150f;
-        Vector3f gravityVector = new Vector3f(0f, -150f, 0f);
-        bulletAppState.getPhysicsSpace().setGravity(gravityVector);
-        startSimulation();
+        initSimulation(4);
     }
 
+    /**
+     * Setup keys for setting count of balls
+     */
     private void setupKeys() {
-        inputManager.addMapping("Left", new KeyTrigger(KeyInput.KEY_H));
-        inputManager.addMapping("Right", new KeyTrigger(KeyInput.KEY_K));
-        inputManager.addMapping("Swing", new KeyTrigger(KeyInput.KEY_SPACE));
-        inputManager.addListener((InputListener) this, "Left", "Right", "Swing");
+        inputManager.addMapping("One", new KeyTrigger(KeyInput.KEY_1));
+        inputManager.addMapping("Two", new KeyTrigger(KeyInput.KEY_2));
+        inputManager.addMapping("Three", new KeyTrigger(KeyInput.KEY_3));
+        inputManager.addMapping("Four", new KeyTrigger(KeyInput.KEY_4));
+        inputManager.addMapping("Five", new KeyTrigger(KeyInput.KEY_5));
+        inputManager.addMapping("Six", new KeyTrigger(KeyInput.KEY_6));
+        inputManager.addListener((InputListener) this, "One", "Two", "Three", "Four", "Five", "Six");
     }
 
+    /**
+     * User clicks handler
+     */
     @Override
     public void onAnalog(String binding, float value, float tpf) {
-        if(binding.equals("Left")){
-            arrayJoint[0].enableMotor(true, 0.3f, 0.5f);
+        if(binding.equals("One")) {
+            initSimulation(1);
         }
-        else if(binding.equals("Right")){
-            arrayJoint[0].enableMotor(true, 0.3f, 0.5f);
+        else if(binding.equals("Two")) {
+            initSimulation(2);
         }
-        else if(binding.equals("Swing")){
-            arrayJoint[0].enableMotor(false, 0, 0);
+        else if(binding.equals("Three")) {
+            initSimulation(3);
+        }
+        else if(binding.equals("Four")) {
+            initSimulation(4);
+        }
+        else if(binding.equals("Five")) {
+            initSimulation(5);
+        }
+        else if(binding.equals("Six")) {
+            initSimulation(6);
         }
     }
 
-    public void startSimulation() {
-        initBalls(6);
-    }
-
-
-
-    public void initBalls(int count) {
+    /**
+     * Simulation initialization
+     * @param count Count of balls
+     */
+    public void initSimulation(int count) {
         Material material = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         material.setColor("Color", ColorRGBA.Blue);
+
+        stateManager.detach(bulletAppState);
+        bulletAppState = new BulletAppState();
+        bulletAppState.setDebugEnabled(true);
+        stateManager.attach(bulletAppState);
+
         SphereCollisionShape[] sphereCollisionShapes = new SphereCollisionShape[count];
         PhysicsRigidBody[] physicsRigidBodies = new PhysicsRigidBody[count];
-        Geometry[] arraySphereGeometry = new Geometry[count];
         arrayJoint = new HingeJoint[2 * count];
         Node[] arrayNode = new Node[2 * count];
 
@@ -95,19 +107,12 @@ public class Main extends SimpleApplication implements AnalogListener {
             physicsRigidBodies[i] = new PhysicsRigidBody(sphereCollisionShapes[i]);
             Vector3f location = new Vector3f(2*i, -4, 0);
             physicsRigidBodies[i].setPhysicsLocation(location);
-            //physicsRigidBodies[i].setMass(50.0f);
-            physicsRigidBodies[i].setRestitution(1f);
+            physicsRigidBodies[i].setMass(15.0f);
+            physicsRigidBodies[i].setRestitution(1.0f);
             physicsRigidBodies[i].setFriction(0f);
-            physicsRigidBodies[i].setGravity(new Vector3f(0f, -300f, 0f));
             bulletAppState.getPhysicsSpace().add(physicsRigidBodies[i]);
-//            Sphere sphere = new Sphere(64, 64, 1f);
-//            arraySphereGeometry[i] = new Geometry("Sphere", sphere);
-//            arraySphereGeometry[i].setMaterial(material);
-//           arraySphereGeometry[i].setLocalTranslation(2*i, -4, 0);
-//            arraySphereGeometry[i].addControl(new RigidBodyControl(1f));
-//            rootNode.attachChild(arraySphereGeometry[i]);
-//            bulletAppState.getPhysicsSpace().add(arraySphereGeometry[i]);
         }
+
 
         for(int i = 0; i < count; i++) {
 
@@ -130,26 +135,15 @@ public class Main extends SimpleApplication implements AnalogListener {
                 bulletAppState.getPhysicsSpace().add(arrayJoint[2 * i + 1]);
         }
 
-        physicsRigidBodies[0].applyCentralForce(new Vector3f(-60f, 0f, 0f));
-
-        //arraySphereGeometry[0]
+        physicsRigidBodies[0].applyCentralForce(new Vector3f(-300f * count, 0f, 0f));
     }
 
-    public static Node createPhysicsNode(AssetManager manager, CollisionShape shape, float mass) {
+    private Node createPhysicsNode(AssetManager manager, CollisionShape shape, float mass) {
         Node node = new Node("PhysicsNode");
         RigidBodyControl control = new RigidBodyControl(shape, mass);
         node.addControl(control);
         return node;
     }
 
-    @Override
-    public void simpleUpdate(float tpf) {
-        //System.out.print(tpf);
-    }
-
-    @Override
-    public void simpleRender(RenderManager rm) {
-        //TODO: add render code
-    }
 }
 
