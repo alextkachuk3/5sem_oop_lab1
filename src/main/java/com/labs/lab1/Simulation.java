@@ -108,34 +108,4 @@ public class Simulation  extends SimpleApplication implements AnalogListener {
         simulationBalls[0].getPhysicsRigidBody().applyCentralForce(new Vector3f(-300f * count, 0f, 0f));
     }
 
-    /**
-     * Simulation ball class
-     */
-    public static class SimulationBall {
-
-        private SphereCollisionShape sphereCollisionShape;
-        private PhysicsRigidBody physicsRigidBody;
-
-        SimulationBall(BulletAppState bulletAppState, Vector3f location) {
-
-            sphereCollisionShape = new SphereCollisionShape(0.99f);
-            physicsRigidBody = new PhysicsRigidBody(sphereCollisionShape);
-            physicsRigidBody.setPhysicsLocation(location);
-            physicsRigidBody.setMass(15.0f);
-            physicsRigidBody.setRestitution(1.0f);
-            physicsRigidBody.setFriction(0f);
-            bulletAppState.getPhysicsSpace().add(physicsRigidBody);
-        }
-
-        public PhysicsRigidBody getPhysicsRigidBody() {
-            return physicsRigidBody;
-        }
-
-        public void connectToNode(Node node, Vector3f location, BulletAppState bulletAppState) {
-            HingeJoint joint = new HingeJoint(node.getControl(RigidBodyControl.class), physicsRigidBody, new Vector3f(0f, 0f, 0f), location, Vector3f.UNIT_Z, Vector3f.UNIT_Z);
-            bulletAppState.getPhysicsSpace().add(joint);
-        }
-
-
-    }
 }
