@@ -13,6 +13,10 @@ import com.jme3.input.controls.KeyTrigger;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 
+/**
+ * Simulation class
+ * @author Alex
+ */
 public class Simulation  extends SimpleApplication implements AnalogListener {
 
     private BulletAppState bulletAppState;
@@ -23,7 +27,7 @@ public class Simulation  extends SimpleApplication implements AnalogListener {
 
 
     /**
-     *
+     * Simulation initialization
      */
     @Override
     public void simpleInitApp() {
@@ -106,7 +110,6 @@ public class Simulation  extends SimpleApplication implements AnalogListener {
 
     /**
      * Simulation ball class
-     * @author Alex
      */
     public static class SimulationBall {
 
